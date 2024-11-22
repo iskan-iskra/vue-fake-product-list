@@ -1,0 +1,218 @@
+<template>
+  <header>
+    <AppProductList>
+      <template #title>
+        <h3>selected:</h3>
+      </template>
+      <template #list v-if="selectedProduct">
+        <AppProductCard :product="selectedProduct">
+          <template #actions>
+            <AppButton @click="unselectProduct"> remove </AppButton>
+          </template>
+        </AppProductCard>
+      </template>
+    </AppProductList>
+
+    <AppProductList>
+      <template #title>
+        <h3>selectedList:</h3>
+      </template>
+      <template #list v-if="selectedProductList.length">
+        <AppProductCard
+          v-for="item in selectedProductList"
+          :key="item.id"
+          :product="item"
+        >
+          <template #actions>
+            <AppButton @click="removeFromSelectedProductList(item.id)">
+              remove
+            </AppButton>
+          </template>
+        </AppProductCard>
+      </template>
+      <template #list-actions v-if="selectedProductList.length">
+        <h4 v-if="selectedProductListCount">
+          {{ selectedProductListCount }}
+        </h4>
+        <AppButton @click="clearSelectedProductList"> clear </AppButton>
+      </template>
+    </AppProductList>
+  </header>
+
+  <main>
+    <template v-if="!isLoading">
+      <AppError v-if="errorMessage" :message="errorMessage">
+        {{ errorMessage }}
+      </AppError>
+
+      <template v-else>
+        <AppProductList>
+          <template #title>
+            <h3>Items:</h3>
+          </template>
+          <template #list>
+            <AppProductCard
+              v-for="item in productCatalog.list1"
+              :key="item.id"
+              :product="item"
+            >
+              <template #actions>
+                <AppButton
+                  @click="selectProduct(item)"
+                  :disabled="!isAvailableProduct(item)"
+                >
+                  select
+                </AppButton>
+              </template>
+            </AppProductCard>
+          </template>
+        </AppProductList>
+
+        <AppProductList>
+          <template #title>
+            <h3>Items 2:</h3>
+          </template>
+          <template #list>
+            <AppProductCard
+              v-for="item in productCatalog.list2"
+              :key="item.id"
+              :product="item"
+            >
+              <template #actions>
+                <AppButton
+                  @click="addToSelectedProductList(item)"
+                  :disabled="!isAvailableForAddToSelectedProductList(item)"
+                >
+                  add to list
+                </AppButton>
+              </template>
+            </AppProductCard>
+          </template>
+        </AppProductList>
+      </template>
+    </template>
+
+    <AppLoader v-else />
+  </main>
+</template>
+
+<script setup lang="ts">
+import { computed, onMounted, reactive } from "vue";
+import { TiCatalog, TiProduct, TiProductListsDic } from "@types";
+import { fetchJson, measureExecutionTime, withDelay } from "@utils";
+import {
+  useAsyncRequest,
+  useMultipleSelect,
+  useSingleSelect,
+} from "@composables";
+import {
+  AppButton,
+  AppLoader,
+  AppProductCard,
+  AppProductList,
+  AppError,
+} from "@components";
+
+const productCatalog = reactive<TiCatalog<TiProductListsDic, TiProduct[]>>({
+  list1: [],
+  list2: [],
+});
+
+const fetchJsonWithDelay = withDelay<TiProduct[]>(fetchJson);
+
+const getProductCatalog = async () => {
+  const [data1, data2] = await Promise.all([
+    fetchJsonWithDelay("/mockData.json"),
+    fetchJsonWithDelay("/mockData2.json"),
+  ]);
+  productCatalog.list1 = data1;
+  productCatalog.list2 = data2;
+};
+
+const getProductCatalogWithTimeMeasure =
+  measureExecutionTime(getProductCatalog);
+
+const {
+  selectedList: selectedProductList,
+  addItem: addToSelectedProductList,
+  removeItem: removeFromSelectedProductList,
+  clearSelected: clearSelectedProductList,
+  isAvailable: isAvailableForAddToSelectedProductList,
+} = useMultipleSelect<TiProduct, "id">("id");
+
+const {
+  selected: selectedProduct,
+  addItem: selectProduct,
+  removeItem: unselectProduct,
+  isAvailable: isAvailableProduct,
+} = useSingleSelect<TiProduct, "id">("id");
+
+const { errorMessage, isLoading, requestHandler } = useAsyncRequest(
+  getProductCatalogWithTimeMeasure
+);
+
+const selectedProductListCount = computed<string | null>(() =>
+  selectedProductList.value.length
+    ? `selected: ${selectedProductList.value.length} / ${productCatalog.list2.length}`
+    : null
+);
+
+onMounted(requestHandler);
+</script>
+
+<style scoped>
+* {
+  box-sizing: border-box;
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0;
+}
+header {
+  display: flex;
+  gap: 8px;
+  background-color: white;
+  position: sticky;
+  top: 0;
+  left: 0;
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid black;
+}
+
+header > * {
+  max-width: 50%;
+  width: 50%;
+}
+
+main {
+  display: flex;
+  gap: 8px;
+}
+
+main > * {
+  max-width: 50%;
+  width: 50%;
+}
+
+@media screen and (max-width: 600px) {
+  header > * {
+    max-width: 100%;
+    width: 100%;
+  }
+  main > * {
+    max-width: 100%;
+    width: 100%;
+  }
+  main {
+    flex-direction: column;
+  }
+  header {
+    flex-direction: column;
+  }
+}
+</style>
