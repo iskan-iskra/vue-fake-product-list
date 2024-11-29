@@ -1,16 +1,8 @@
 <template>
-  <div class="error-message" v-if="message">
-    {{ message }}
+  <div class="error-message">
+    <slot></slot>
   </div>
 </template>
-
-<script setup lang="ts">
-interface IErrorMessageProps {
-  message: string | null;
-}
-
-const { message = null } = defineProps<IErrorMessageProps>();
-</script>
 
 <style scoped>
 .error-message {

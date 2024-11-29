@@ -3,6 +3,6 @@ export type TiProduct = {
   name: string;
 };
 
-export type TiProductListsDic = "list1" | "list2";
+export type TiProductListsDic = "singleSelect" | "multiSelect";
 
 export type TiCatalog<T extends string, K> = Record<T, K>;

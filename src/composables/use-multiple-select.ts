@@ -1,12 +1,13 @@
 import { Ref, ref } from "vue";
 
-export default function <T, K extends keyof T>(uniKey: K) {
+export default function <T, K extends keyof T>(
+  uniKey: K,
+  multiSelectRestrictionCount: number
+) {
   const selectedList: Ref<T[]> = ref([]);
 
   const addItem = (value: T): void => {
-    const keyValue = value[uniKey];
-
-    if (!selectedList.value.find((item) => item[uniKey] === keyValue)) {
+    if (isAvailable(value)) {
       selectedList.value.push(value);
     }
   };
@@ -21,8 +22,21 @@ export default function <T, K extends keyof T>(uniKey: K) {
     selectedList.value = [];
   };
 
-  const isAvailable = (value: T): boolean =>
-    !selectedList.value.find((item) => item[uniKey] === value[uniKey]);
+  const isInSelectedList = (value: T): boolean =>
+    !!selectedList.value.find((item) => item[uniKey] === value[uniKey]);
 
-  return { selectedList, addItem, removeItem, clearSelected, isAvailable };
+  const isRestrictionCountReached = (): boolean =>
+    multiSelectRestrictionCount === selectedList.value.length;
+
+  const isAvailable = (value: T): boolean =>
+    !isInSelectedList(value) && !isRestrictionCountReached();
+
+  return {
+    selectedList,
+    addItem,
+    removeItem,
+    clearSelected,
+    isAvailable,
+    selectRestrictionCount: multiSelectRestrictionCount,
+  };
 }
