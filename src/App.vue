@@ -47,7 +47,7 @@
     <main v-else>
       <AppProductList>
         <template #title>
-          <h3>Items:</h3>
+          <h3>Items single-select:</h3>
         </template>
         <template #list>
           <AppProductCard
@@ -69,7 +69,7 @@
 
       <AppProductList>
         <template #title>
-          <h3>Items 2:</h3>
+          <h3>Items multi-select:</h3>
         </template>
         <template #list>
           <AppProductCard
