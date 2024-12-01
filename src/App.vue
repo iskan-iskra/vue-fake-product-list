@@ -15,7 +15,7 @@
 
     <AppProductList>
       <template #title>
-        <h3>selectedList:</h3>
+        <h3>selected-list:</h3>
       </template>
       <template #list v-if="selectedProductList.length">
         <AppProductCard
