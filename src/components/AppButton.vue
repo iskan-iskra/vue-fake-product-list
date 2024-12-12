@@ -1,22 +1,8 @@
 <template>
-  <button :disabled="disabled" class="app-button" @click="handleClick">
+  <button class="app-button" v-bind="$attrs">
     <slot></slot>
   </button>
 </template>
-
-<script setup lang="ts">
-interface IAppButtonProps {
-  disabled?: boolean;
-}
-
-const emit = defineEmits(["click"]);
-
-const { disabled = false } = defineProps<IAppButtonProps>();
-
-const handleClick = (event: MouseEvent) => {
-  if (!disabled) emit("click", event);
-};
-</script>
 
 <style scoped>
 .app-button {
